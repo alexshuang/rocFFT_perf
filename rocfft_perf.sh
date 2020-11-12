@@ -5,10 +5,11 @@ set -e
 export PATH=$PATH:/opt/rocm/bin
 
 LENGTH=$1
-OUT_DIR=${2:-out}
+TRANS_TYPE=${2:-0}
 N=${3:-10}
 COLD_N=${4:-1}
 BATCH_COUNT=${5:-1}
+OUT_DIR=${6:-out}
 OUT_DIR=$OUT_DIR/len${LENGTH}_b${BATCH_COUNT}_N${N}
 RESULT_FILE=$OUT_DIR/perf_len$LENGTH.log
 LENGTH=`echo $LENGTH | awk -F'-' '{ print($1, $2, $3, $4, $5) }'`
@@ -16,12 +17,12 @@ mkdir -p $OUT_DIR
 
 if [ $# -lt 1 ]; then
     echo "ERROR: Required parameter missing."
-    echo -e "Usage: rocfft_perf.sh <LENGTH> [OUT_DIR=out] [N=10] [COLD_N=1] [BATCH_COUNT=1]"
-    echo -e "\te.g. rocfft_perf.sh 32-32-32 output ..."
+    echo -e "Usage: rocfft_perf.sh <LENGTH> [TRANSFORM_TYPE=0] [N=10] [COLD_N=1] [BATCH_COUNT=1] [OUT_DIR=out]"
+    echo -e "\te.g. rocfft_perf.sh 32-32-32 ..."
     exit 1
 fi
 
-CMD="./rocfft-rider -t 2 --length $LENGTH -N ${N} -b $BATCH_COUNT"
+CMD="./rocfft-rider --length $LENGTH -t $TRANS_TYPE -N $N -b $BATCH_COUNT"
 echo "$CMD"
 
 # BASIC
