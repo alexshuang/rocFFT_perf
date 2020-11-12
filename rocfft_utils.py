@@ -63,9 +63,17 @@ def show_profiling(args):
     if os.path.exists(args.basic_prof_file):
         print("############ BASIC PROF ###############")
         prof = RocProfParser(args.basic_prof_file, args.num_iter, args.num_cold_iter)
-        cols = args.basic_pmc.split(' ')
+        cols = ["vgpr","sgpr"]
+        cols.extend(args.basic_pmc.split(' '))
         prof.show_last(cols)
         num_kernel = prof.num_kernel
+        print("")
+
+    if os.path.exists(args.insts_prof_file):
+        print("############ INSTS PROF ###############")
+        prof = RocProfParser(args.insts_prof_file, args.num_iter, args.num_cold_iter)
+        cols = args.insts_pmc.split(' ')
+        prof.show_last(cols)
         print("")
 
     if os.path.exists(args.mem_conflict_prof_file):
@@ -112,6 +120,8 @@ if __name__ == '__main__':
     parser.description = "rocfft performance testing"
     parser.add_argument("--basic_prof_file", type=str)
     parser.add_argument("--basic_pmc", type=str)
+    parser.add_argument("--insts_prof_file", type=str)
+    parser.add_argument("--insts_pmc", type=str)
     parser.add_argument("--mem_conflict_prof_file", type=str)
     parser.add_argument("--mem_conflict_pmc", type=str)
     parser.add_argument("--mem_stalled_prof_file", type=str)
@@ -120,6 +130,7 @@ if __name__ == '__main__':
     parser.add_argument("--rider_results", type=str)
     parser.add_argument("--num_iter", type=int, help='number of run iterations')
     parser.add_argument("--num_cold_iter", type=int, help='number of run iterations')
+    parser.add_argument("--batch_count", type=int, help='batch size')
     args = parser.parse_args()
 
     show_profiling(args)
