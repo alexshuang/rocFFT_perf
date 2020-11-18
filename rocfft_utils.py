@@ -63,7 +63,7 @@ def show_profiling(args):
     if os.path.exists(args.basic_prof_file):
         print("############ BASIC PROF ###############")
         prof = RocProfParser(args.basic_prof_file, args.num_iter, args.num_cold_iter)
-        cols = ["vgpr","sgpr"]
+        cols = ["grd","wgr","lds","vgpr","sgpr"]
         cols.extend(args.basic_pmc.split(' '))
         prof.show_last(cols)
         num_kernel = prof.num_kernel
