@@ -5,11 +5,13 @@ set -e
 export PATH=$PATH:/opt/rocm/bin
 
 LENGTH=$1
-TRANS_TYPE=${2:-0}
-N=${3:-10}
-COLD_N=${4:-1}
-BATCH_COUNT=${5:-1}
-OUT_DIR=${6:-out}
+BATCH_COUNT=${2:-1}
+TRANS_TYPE=${3:-0}
+N=${4:-10}
+COLD_N=${5:-1}
+ISTRIDE=${6:-3}
+OSTRIDE=${7:-4}
+OUT_DIR=${8:-out}
 OUT_DIR=$OUT_DIR/len${LENGTH}_b${BATCH_COUNT}_N${N}
 RESULT_FILE=$OUT_DIR/perf_len$LENGTH.log
 LENGTH=`echo $LENGTH | awk -F'-' '{ print($1, $2, $3, $4, $5) }'`
@@ -22,7 +24,7 @@ if [ $# -lt 1 ]; then
     exit 1
 fi
 
-CMD="./rocfft-rider --length $LENGTH -t $TRANS_TYPE -N $N -b $BATCH_COUNT"
+CMD="./rocfft-rider --length $LENGTH -t $TRANS_TYPE -N $N -b $BATCH_COUNT --istride $ISTRIDE --ostride $OSTRIDE"
 echo "$CMD"
 
 # BASIC
