@@ -9,8 +9,8 @@ BATCH_COUNT=${2:-1}
 TRANS_TYPE=${3:-0}
 N=${4:-10}
 COLD_N=${5:-1}
-ISTRIDE=${6:-3}
-OSTRIDE=${7:-4}
+ISTRIDE=${6:-1}
+OSTRIDE=${7:-1}
 OUT_DIR=${8:-out}
 OUT_DIR=$OUT_DIR/len${LENGTH}_b${BATCH_COUNT}_N${N}
 RESULT_FILE=$OUT_DIR/perf_len$LENGTH.log
@@ -19,7 +19,7 @@ mkdir -p $OUT_DIR
 
 if [ $# -lt 1 ]; then
     echo "ERROR: Required parameter missing."
-    echo -e "Usage: rocfft_perf.sh <LENGTH> [TRANSFORM_TYPE=0] [N=10] [COLD_N=1] [BATCH_COUNT=1] [OUT_DIR=out]"
+    echo -e "Usage: rocfft_perf.sh <LENGTH> [BATCH_COUNT=1] [TRANSFORM_TYPE=0] [N=10] [COLD_N=1] [ISTRIDE=1] [OSTRIDE=1] [OUT_DIR=out]"
     echo -e "\te.g. rocfft_perf.sh 32-32-32 ..."
     exit 1
 fi
