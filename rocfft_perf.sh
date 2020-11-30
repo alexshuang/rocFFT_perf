@@ -9,12 +9,19 @@ BATCH_COUNT=${2:-1}
 TRANS_TYPE=${3:-0}
 N=${4:-10}
 COLD_N=${5:-1}
-ISTRIDE=${6:-1}
-OSTRIDE=${7:-1}
+ISTRIDE=${6:-strided}
+OSTRIDE=${7:-strided}
 OUT_DIR=${8:-out}
 OUT_DIR=$OUT_DIR/len${LENGTH}_b${BATCH_COUNT}_N${N}
 RESULT_FILE=$OUT_DIR/perf_len$LENGTH.log
 LENGTH=`echo $LENGTH | awk -F'-' '{ print($1, $2, $3, $4, $5) }'`
+if [ $ISTRIDE != "strided" ]; then
+	ISTRIDE=`echo $ISTRIDE | awk -F'-' '{ print($1, $2, $3, $4, $5) }'`
+fi
+if [ $OSTRIDE != "strided" ]; then
+	OSTRIDE=`echo $OSTRIDE | awk -F'-' '{ print($1, $2, $3, $4, $5) }'`
+fi
+echo "ISTRIDE = $ISTRIDE, OSTRIDE = $OSTRIDE"
 mkdir -p $OUT_DIR
 
 if [ $# -lt 1 ]; then
@@ -24,8 +31,15 @@ if [ $# -lt 1 ]; then
     exit 1
 fi
 
-CMD="./rocfft-rider --length $LENGTH -t $TRANS_TYPE -N $N -b $BATCH_COUNT --istride $ISTRIDE --ostride $OSTRIDE"
-echo "$CMD"
+CMD="./rocfft-rider --length $LENGTH -t $TRANS_TYPE -N $N -b $BATCH_COUNT"
+if [ "$ISTRIDE" != "strided" ]; then
+	CMD+=" --istride $ISTRIDE"
+fi
+if [ "$OSTRIDE" != "strided" ]; then
+	CMD+=" --ostride $OSTRIDE"
+fi
+
+echo $CMD
 
 # BASIC
 BASIC_PMC="L2CacheHit"
