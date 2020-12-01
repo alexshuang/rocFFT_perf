@@ -92,7 +92,7 @@ def show_profiling(args):
 
     print("############ KERNEL DURATION MS ###############");
     assert(num_kernel > 0)
-    df = pd.read_csv(args.rocfft_log_profile, low_memory=False, header=None)
+    df = pd.read_csv(args.log_file, low_memory=False, header=None)
     kernel_names = df[2].values[:num_kernel]
     duration_ms = df[4].values.reshape(-1, num_kernel)
     mean_duration_ms = duration_ms[args.num_cold_iter:].mean(0)
@@ -101,11 +101,11 @@ def show_profiling(args):
         print(f"{n}: mean: {v1:.4f}, median: {v2:.4f}")
     print("")
 
-    print("############ GPU TIME ###############");
+    print("############ END TO END ###############");
     time_pat = re.compile('Execution gpu time: (.*) ms')
     gflops_pat = re.compile('Execution gflops: (.*)')
 
-    data = open(args.rider_results).read()
+    data = open(args.perf_file).read()
     times = re.findall(time_pat, data)[0]
     gflops = re.findall(gflops_pat, data)[0]
     times = [eval(o) for o in times.strip().split(' ')][args.num_cold_iter:]
@@ -126,8 +126,8 @@ if __name__ == '__main__':
     parser.add_argument("--mem_conflict_pmc", type=str)
     parser.add_argument("--mem_stalled_prof_file", type=str)
     parser.add_argument("--mem_stalled_pmc", type=str)
-    parser.add_argument("--rocfft_log_profile", type=str)
-    parser.add_argument("--rider_results", type=str)
+    parser.add_argument("--log_file", type=str)
+    parser.add_argument("--perf_file", type=str)
     parser.add_argument("--num_iter", type=int, help='number of run iterations')
     parser.add_argument("--num_cold_iter", type=int, help='number of run iterations')
     parser.add_argument("--batch_count", type=int, help='batch size')

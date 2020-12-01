@@ -21,7 +21,6 @@ fi
 if [ $OSTRIDE != "strided" ]; then
 	OSTRIDE=`echo $OSTRIDE | awk -F'-' '{ print($1, $2, $3, $4, $5) }'`
 fi
-echo "ISTRIDE = $ISTRIDE, OSTRIDE = $OSTRIDE"
 mkdir -p $OUT_DIR
 
 if [ $# -lt 1 ]; then
@@ -43,42 +42,43 @@ echo $CMD
 
 # BASIC
 BASIC_PMC="L2CacheHit"
-echo "pmc: $BASIC_PMC" > /tmp/input.txt
-rocprof -i /tmp/input.txt --hsa-trace --timestamp on -o $OUT_DIR/basic_prof.csv $CMD
-
-# INSTS
 INSTS_PMC="Wavefronts VALUInsts SALUInsts SFetchInsts FlatVMemInsts LDSInsts FlatLDSInsts GDSInsts"
-echo "pmc: $INSTS_PMC" > /tmp/input.txt
-rocprof -i /tmp/input.txt --hsa-trace --timestamp on -o $OUT_DIR/insts_prof.csv $CMD
+echo "pmc: $BASIC_PMC" > /tmp/input.txt
+echo "pmc: $INSTS_PMC" >> /tmp/input.txt
+rocprof -i /tmp/input.txt --timestamp on -o $OUT_DIR/basic_prof.csv $CMD
 
 # MEMORY CONFLICT
 MEM_CONFLICT_PMC="SQ_INSTS_LDS SQ_WAIT_INST_LDS SQ_LDS_BANK_CONFLICT LDSBankConflict"
 echo "pmc: $MEM_CONFLICT_PMC" > /tmp/input.txt
-rocprof -i /tmp/input.txt --hsa-trace --timestamp on -o $OUT_DIR/mem_conflict_prof.csv $CMD
+rocprof -i /tmp/input.txt --timestamp on -o $OUT_DIR/mem_conflict_prof.csv $CMD
 
 # MEMORY STALLED
 MEM_STALLED_PMC="VALUUtilization MemUnitStalled WriteUnitStalled"
 echo "pmc: $MEM_STALLED_PMC" > /tmp/input.txt
-rocprof -i /tmp/input.txt --hsa-trace --timestamp on -o $OUT_DIR/mem_stalled_prof.csv $CMD
+rocprof -i /tmp/input.txt --timestamp on -o $OUT_DIR/mem_stalled_prof.csv $CMD
 
-export ROCFFT_LAYER=7
-export ROCFFT_LOG_PROFILE_PATH=$OUT_DIR/rocfft_prof_log.csv
-$CMD 2>&1 | tee $OUT_DIR/rocfft_rider_results.txt
+export ROCFFT_LAYER=6
+export ROCFFT_LOG_PROFILE_PATH=$OUT_DIR/rider_log.csv
+$CMD #2>&1 | tee $OUT_DIR/rider_result.txt
+
+unset ROCFFT_LAYER
+unset ROCFFT_LOG_PROFILE_PATH
+$CMD 2>&1 | tee $OUT_DIR/rider_result.txt
 
 rm -f $OUT_DIR/*.json $OUT_DIR/*.db
 
 # rocprof parse
 python3 rocfft_utils.py \
     --basic_prof_file $OUT_DIR/basic_prof.csv \
-    --insts_prof_file $OUT_DIR/insts_prof.csv \
+    --insts_prof_file $OUT_DIR/basic_prof.csv \
     --mem_conflict_prof_file $OUT_DIR/mem_conflict_prof.csv \
     --mem_stalled_prof_file $OUT_DIR/mem_stalled_prof.csv \
     --basic_pmc "$BASIC_PMC" \
     --insts_pmc "$INSTS_PMC" \
     --mem_conflict_pmc "$MEM_CONFLICT_PMC" \
     --mem_stalled_pmc "$MEM_STALLED_PMC" \
-    --rocfft_log_profile $OUT_DIR/rocfft_prof_log.csv \
-    --rider_results $OUT_DIR/rocfft_rider_results.txt \
+    --log_file $OUT_DIR/rider_log.csv \
+    --perf_file $OUT_DIR/rider_result.txt \
     --num_iter $N \
     --num_cold_iter $COLD_N \
     --batch_count $BATCH_COUNT \
