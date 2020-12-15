@@ -62,7 +62,7 @@ def show_profiling(args):
 
     if os.path.exists(args.basic_prof_file):
         print("############ BASIC PROF ###############")
-        prof = RocProfParser(args.basic_prof_file, args.num_iter, args.num_cold_iter)
+        prof = RocProfParser(args.basic_prof_file, 1, 1)
         cols = ["grd","wgr","lds","vgpr","sgpr"]
         cols.extend(args.basic_pmc.split(' '))
         prof.show_last(cols)
@@ -71,21 +71,21 @@ def show_profiling(args):
 
     if os.path.exists(args.insts_prof_file):
         print("############ INSTS PROF ###############")
-        prof = RocProfParser(args.insts_prof_file, args.num_iter, args.num_cold_iter)
+        prof = RocProfParser(args.insts_prof_file, 1, 1)
         cols = args.insts_pmc.split(' ')
         prof.show_last(cols)
         print("")
 
     if os.path.exists(args.mem_conflict_prof_file):
         print("############ MEMORY CONFLICT PROF ###############")
-        prof = RocProfParser(args.mem_conflict_prof_file, args.num_iter, args.num_cold_iter)
+        prof = RocProfParser(args.mem_conflict_prof_file, 1, 1)
         cols = args.mem_conflict_pmc.split(' ')
         prof.show_last(cols)
         print("")
 
     if os.path.exists(args.mem_stalled_prof_file):
         print("############ MEMORY STALL PROF ###############")
-        prof = RocProfParser(args.mem_stalled_prof_file, args.num_iter, args.num_cold_iter)
+        prof = RocProfParser(args.mem_stalled_prof_file, 1, 1)
         cols = args.mem_stalled_pmc.split(' ')
         prof.show_last(cols)
         print("")

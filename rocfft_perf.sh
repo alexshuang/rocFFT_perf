@@ -9,16 +9,16 @@ BATCH_COUNT=${2:-1}
 TRANS_TYPE=${3:-0}
 N=${4:-10}
 COLD_N=${5:-1}
-ISTRIDE=${6:-strided}
-OSTRIDE=${7:-strided}
+ISTRIDE=${6:-default}
+OSTRIDE=${7:-default}
 OUT_DIR=${8:-out}
-OUT_DIR=$OUT_DIR/len${LENGTH}_b${BATCH_COUNT}_N${N}
+OUT_DIR=$OUT_DIR/len${LENGTH}_b${BATCH_COUNT}_N${N}_Is${ISTRIDE}_Os${OSTRIDE}
 RESULT_FILE=$OUT_DIR/perf_len$LENGTH.log
 LENGTH=`echo $LENGTH | awk -F'-' '{ print($1, $2, $3, $4, $5) }'`
-if [ $ISTRIDE != "strided" ]; then
+if [ $ISTRIDE != "default" ]; then
 	ISTRIDE=`echo $ISTRIDE | awk -F'-' '{ print($1, $2, $3, $4, $5) }'`
 fi
-if [ $OSTRIDE != "strided" ]; then
+if [ $OSTRIDE != "default" ]; then
 	OSTRIDE=`echo $OSTRIDE | awk -F'-' '{ print($1, $2, $3, $4, $5) }'`
 fi
 mkdir -p $OUT_DIR
@@ -30,19 +30,24 @@ if [ $# -lt 1 ]; then
     exit 1
 fi
 
-CMD="./rocfft-rider --length $LENGTH -t $TRANS_TYPE -N $N -b $BATCH_COUNT"
-if [ "$ISTRIDE" != "strided" ]; then
+CMD="./rocfft-rider --length $LENGTH -t $TRANS_TYPE -b $BATCH_COUNT"
+if [ "$ISTRIDE" != "default" ]; then
 	CMD+=" --istride $ISTRIDE"
 fi
-if [ "$OSTRIDE" != "strided" ]; then
+if [ "$OSTRIDE" != "default" ]; then
 	CMD+=" --ostride $OSTRIDE"
 fi
 
 echo $CMD
 
+# thread trace
+SQTT_PMC="sqtt : SE_MASK=0x1 MASK = 0x0F09 TOKEN_MASK = 0x344B TOKEN_MASK2 = 0xFFFFFFFF"
+echo $SQTT_PMC > /tmp/input.txt
+rocprof -i /tmp/input.txt -d $OUT_DIR $CMD
+
 # BASIC
-BASIC_PMC="L2CacheHit"
-INSTS_PMC="Wavefronts VALUInsts SALUInsts SFetchInsts FlatVMemInsts LDSInsts FlatLDSInsts GDSInsts"
+BASIC_PMC="L2CacheHit GPUBusy"
+INSTS_PMC="Wavefronts SQ_WAVES VALUInsts SALUInsts SFetchInsts FlatVMemInsts LDSInsts FlatLDSInsts GDSInsts"
 echo "pmc: $BASIC_PMC" > /tmp/input.txt
 echo "pmc: $INSTS_PMC" >> /tmp/input.txt
 rocprof -i /tmp/input.txt --timestamp on -o $OUT_DIR/basic_prof.csv $CMD
@@ -59,11 +64,11 @@ rocprof -i /tmp/input.txt --timestamp on -o $OUT_DIR/mem_stalled_prof.csv $CMD
 
 export ROCFFT_LAYER=6
 export ROCFFT_LOG_PROFILE_PATH=$OUT_DIR/rider_log.csv
-$CMD #2>&1 | tee $OUT_DIR/rider_result.txt
+$CMD -N $N #2>&1 | tee $OUT_DIR/rider_result.txt
 
 unset ROCFFT_LAYER
 unset ROCFFT_LOG_PROFILE_PATH
-$CMD 2>&1 | tee $OUT_DIR/rider_result.txt
+$CMD -N $N 2>&1 | tee $OUT_DIR/rider_result.txt
 
 rm -f $OUT_DIR/*.json $OUT_DIR/*.db
 
