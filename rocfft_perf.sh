@@ -43,6 +43,7 @@ echo $CMD
 # thread trace
 SQTT_PMC="sqtt : SE_MASK=0x1 MASK = 0x0F09 TOKEN_MASK = 0x344B TOKEN_MASK2 = 0xFFFFFFFF"
 echo $SQTT_PMC > /tmp/input.txt
+rm -rf $OUT_DIR/rpl_data_*
 rocprof -i /tmp/input.txt -d $OUT_DIR $CMD
 
 # BASIC
