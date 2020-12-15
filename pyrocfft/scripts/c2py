@@ -1,0 +1,25 @@
+#!/bin/sh
+
+SRC=$1
+
+sed -i 's/^__global__ void\s*/def /g' $SRC
+sed -i 's/^__device__\s*/def /g' $SRC
+sed -i 's/hipLaunchKernelGGL.*(\(.*\)<.*>.*/\1(/g' $SRC
+sed -i '/^template\s*</d' $SRC
+sed -i '/^\s*{\s*$/d' $SRC
+sed -i '/^\s*}\s*$/d' $SRC
+sed -i 's/hipStream_t\s*//g' $SRC
+sed -i 's/\<void\>\**\s*//g' $SRC
+sed -i 's/\<int\>\**\s*//g' $SRC
+sed -i 's/\<const\>\s*//g' $SRC
+sed -i 's/(size_t)\s*//g' $SRC
+sed -i 's/\<size_t\>\s*//g' $SRC
+sed -i 's/lib_make_vector2<T>//g' $SRC
+sed -i 's/\<T\>\**\s*//g' $SRC
+sed -i 's/else if\s*(\(.*\))/elif \1:/g' $SRC
+sed -i 's/if\s*(\(.*\))/if \1:/g' $SRC
+sed -i 's/^\(\s*\)else\(\s*\)$/\1else:\2/g' $SRC
+sed -i 's/\<rocfft_status_success\>/0/g' $SRC
+sed -i 's/data->node->//g' $SRC
+sed -i 's/\<dim3(\(.*\))/\1/g' $SRC
+sed -i 's/\<dim3\>\s*\(\w*\)(\(.*\))/\1 = (\2)/g' $SRC
