@@ -66,6 +66,8 @@ rocprof -i /tmp/input.txt --timestamp on -o $OUT_DIR/mem_stalled_prof.csv $CMD
 export ROCFFT_LAYER=6
 export ROCFFT_LOG_PROFILE_PATH=$OUT_DIR/rider_log.csv
 $CMD -N $N #2>&1 | tee $OUT_DIR/rider_result.txt
+sed -i 's;\[\([0-9]*\),\([0-9]*\)\];[\1-\2];g' $OUT_DIR/rider_log.csv
+sed -i 's;\[\([0-9]*\),\([0-9]*\),\([0-9]*\)\];[\1-\2-\3];g' $OUT_DIR/rider_log.csv
 
 unset ROCFFT_LAYER
 unset ROCFFT_LOG_PROFILE_PATH
