@@ -11,8 +11,9 @@ N=${4:-10}
 COLD_N=${5:-1}
 ISTRIDE=${6:-default}
 OSTRIDE=${7:-default}
+THREAD_TRACE=${9:-0}
 OUT_DIR=${8:-out}
-OUT_DIR=$OUT_DIR/len${LENGTH}_b${BATCH_COUNT}_N${N}_Is${ISTRIDE}_Os${OSTRIDE}
+OUT_DIR=$OUT_DIR/len${LENGTH}_b${BATCH_COUNT}_N${N}
 RESULT_FILE=$OUT_DIR/perf_len$LENGTH.log
 LENGTH=`echo $LENGTH | awk -F'-' '{ print($1, $2, $3, $4, $5) }'`
 if [ $ISTRIDE != "default" ]; then
@@ -32,19 +33,23 @@ fi
 
 CMD="./rocfft-rider --length $LENGTH -t $TRANS_TYPE -b $BATCH_COUNT"
 if [ "$ISTRIDE" != "default" ]; then
+	OUT_DIR+="_Is${ISTRIDE}"
 	CMD+=" --istride $ISTRIDE"
 fi
 if [ "$OSTRIDE" != "default" ]; then
+	OUT_DIR+="_Os${OSTRIDE}"
 	CMD+=" --ostride $OSTRIDE"
 fi
 
 echo $CMD
 
 # thread trace
-SQTT_PMC="sqtt : SE_MASK=0x1 MASK = 0x0F09 TOKEN_MASK = 0x344B TOKEN_MASK2 = 0xFFFFFFFF"
-echo $SQTT_PMC > /tmp/input.txt
-rm -rf $OUT_DIR/rpl_data_*
-rocprof -i /tmp/input.txt -d $OUT_DIR $CMD
+if [ "${THREAD_TRACE}" == "1" ]; then
+    SQTT_PMC="sqtt : SE_MASK=0x1 MASK = 0x0F09 TOKEN_MASK = 0x344B TOKEN_MASK2 = 0xFFFFFFFF"
+    echo $SQTT_PMC > /tmp/input.txt
+    rm -rf $OUT_DIR/rpl_data_*
+    rocprof -i /tmp/input.txt -d $OUT_DIR $CMD
+fi
 
 # BASIC
 BASIC_PMC="L2CacheHit GPUBusy"
